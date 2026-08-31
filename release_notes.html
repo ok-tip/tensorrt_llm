@@ -1,0 +1,443 @@
+<style>
+  .rn-root {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    color: #e0e0e0;
+    max-width: 860px;
+  }
+
+  .rn-entry {
+    margin-bottom: 0;
+    border-left: 2px solid #333;
+    padding-left: 1.5rem;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+
+  .rn-entry:hover {
+    border-left-color: #666;
+  }
+
+  .rn-entry::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 14px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    border: 2px solid #444;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .rn-entry:hover::before {
+    background: #666;
+    border-color: #666;
+  }
+
+  .rn-version-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 0 0.75rem 0;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .rn-version-tag {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e0e0e0;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 0.2em 0.6em;
+  }
+
+  .rn-version-tag.rn-major {
+    color: #e0e0e0;
+    border-color: #444;
+    background: #2a2a2a;
+  }
+
+  .rn-badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.15em 0.5em;
+    border-radius: 4px;
+  }
+
+  .rn-badge-breaking {
+    background: #3d1a1a;
+    color: #f07070;
+    border: 1px solid #5a2020;
+  }
+
+  .rn-badge-new {
+    background: #2a2a2a;
+    color: #aaa;
+    border: 1px solid #444;
+  }
+
+  .rn-badge-infra {
+    background: #2a2a2a;
+    color: #888;
+    border: 1px solid #444;
+  }
+
+  .rn-date {
+    font-size: 14px;
+    color: #999;
+  }
+
+  .rn-toggle {
+    margin-left: auto;
+    font-size: 11px;
+    color: #555;
+    transition: color 0.2s;
+  }
+
+  .rn-entry:hover .rn-toggle {
+    color: #888;
+  }
+
+  .rn-body {
+    padding-bottom: 1.25rem;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    max-height: 1000px;
+    opacity: 1;
+  }
+
+  .rn-body.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding-bottom: 0;
+  }
+
+  .rn-section-label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #a3e635;
+    margin: 0.75rem 0 0.4rem 0;
+  }
+
+  .rn-section-label.rn-known-issues {
+    color: #e05050;
+  }
+
+  .rn-section-label.rn-infra {
+    color: #e0e0e0;
+  }
+
+  .rn-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .rn-list li {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #ccc;
+    padding-left: 1.1rem;
+    position: relative;
+  }
+
+  .rn-list li::before {
+    content: '–';
+    position: absolute;
+    left: 0;
+    color: #444;
+  }
+
+  .rn-list li .rn-chip-breaking {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: #3d1a1a;
+    color: #f07070;
+    border-radius: 3px;
+    padding: 0.1em 0.4em;
+    margin-right: 0.35em;
+    vertical-align: middle;
+  }
+
+  .rn-list li .rn-model {
+    font-size: 13px;
+    color: #ccc;
+  }
+
+  .rn-known-issues .rn-list li::before {
+    content: '!';
+    color: #7a3030;
+    font-weight: 700;
+  }
+
+  .rn-divider {
+    border: none;
+    border-top: 1px solid #252525;
+    margin: 0;
+  }
+
+  .rn-gh-link {
+    font-size: 14px;
+    color: #999;
+    text-decoration: none;
+  }
+  .rn-gh-link:hover { color: #ccc; }
+</style>
+
+<div class="rn-root">
+
+  <!-- v1.2.0 -->
+  <div class="rn-entry">
+    <div class="rn-version-header" onclick="rnToggle(this)">
+      <span class="rn-version-tag rn-major">v1.2.0</span>
+      <span class="rn-date">2026/03/10</span>
+      
+      <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v1.2.0" target="_blank" rel="noopener noreferrer" class="rn-gh-link" onclick="event.stopPropagation()">↗ GitHub</a><span class="rn-toggle">▲</span>
+    </div>
+    <div class="rn-body">
+      <p class="rn-section-label">Key Features &amp; Enhancements</p>
+      <ul class="rn-list">
+        <li>Added beta support for K-EXAONE, Nemotron Nano V3, Qwen3-Next and Qwen3-VL.</li>
+        <li>Validated models and precision formats:
+          <ul class="rn-list" style="margin-top:0.35rem">
+            <li><span class="rn-model">GPT-OSS-20B, GPT-OSS-120B</span> (MXFP4)</li>
+            <li><span class="rn-model">Llama-3.1-8B-Instruct</span> (FP16/FP8/NVFP4)</li>
+            <li><span class="rn-model">Llama-3.3-70B-Instruct</span> (FP8/NVFP4)</li>
+            <li><span class="rn-model">Qwen3-8B, Qwen3-14B</span> (FP16/FP8/NVFP4)</li>
+            <li><span class="rn-model">Qwen3-32B</span> (FP16/NVFP4)</li>
+            <li><span class="rn-model">Qwen3-30B-A3B</span> (FP16/NVFP4)</li>
+            <li><span class="rn-model">NVIDIA-Nemotron-Nano-9B-v2</span> (FP4)</li>
+            <li><span class="rn-model">Llama-3.3-Nemotron-Super-49B-v1.5</span> (FP8)</li>
+            <li><span class="rn-model">Phi-4-multimodal-instruct</span> (FP16/FP8/NVFP4)</li>
+            <li><span class="rn-model">Phi-4-reasoning-plus</span> (FP16/FP8/NVFP4)</li>
+          </ul>
+        </li>
+        <li>Added NUMA-aware CPU affinity automatic configuration.</li>
+      </ul>
+      <p class="rn-section-label rn-known-issues">Known Issues</p>
+      <ul class="rn-list rn-known-issues">
+        <li>A hang may occur in disaggregated serving with context pipeline parallelism and generation tensor parallelism configurations.</li>
+      </ul>
+    </div>
+  </div>
+  <hr class="rn-divider">
+
+  <!-- v1.1.0 -->
+  <div class="rn-entry">
+    <div class="rn-version-header" onclick="rnToggle(this)">
+      <span class="rn-version-tag rn-major">v1.1.0</span>
+      <span class="rn-date">2025/12/12</span>
+      <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v1.1.0" target="_blank" rel="noopener noreferrer" class="rn-gh-link" onclick="event.stopPropagation()">↗ GitHub</a><span class="rn-toggle">▲</span>
+    </div>
+    <div class="rn-body">
+      <p class="rn-section-label">Key Features &amp; Enhancements</p>
+      <ul class="rn-list">
+        <li>Added support for B300/GB300.</li>
+        <li>Added dedicated performance tests for disaggregated serving scenarios.</li>
+        <li>Added specific performance test cases for NIM (NVIDIA Inference Microservices) integration.</li>
+        <li>Enhanced reporting to include KV cache size metrics in benchmark results.</li>
+      </ul>
+      <p class="rn-section-label rn-known-issues">Known Issues</p>
+      <ul class="rn-list rn-known-issues">
+        <li>Support for GB300 in multi-node configurations is currently in beta and not fully validated in this release.</li>
+      </ul>
+    </div>
+  </div>
+  <hr class="rn-divider">
+
+  <!-- v1.0.0 -->
+  <div class="rn-entry">
+    <div class="rn-version-header" onclick="rnToggle(this)">
+      <span class="rn-version-tag rn-major">v1.0.0</span>
+      <span class="rn-date">2025/09/24</span>
+      <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer" class="rn-gh-link" onclick="event.stopPropagation()">↗ GitHub</a><span class="rn-toggle">▲</span>
+    </div>
+    <div class="rn-body">
+      <p class="rn-section-label">Key Features &amp; Enhancements</p>
+      <ul class="rn-list">
+        <li>PyTorch is now the default LLM backend.</li>
+        <li>Added support for GB10 (sm121).</li>
+        <li>Added EXAONE 4.0 model support.</li>
+        <li>Huge page mapping for host accessible memory on GB200.</li>
+        <li>Added latency support for trtllm-bench.</li>
+      </ul>
+      <p class="rn-section-label rn-known-issues">Known Issues</p>
+      <ul class="rn-list rn-known-issues">
+        <li>When using disaggregated serving with pipeline parallelism and KV cache reuse, a hang can occur.</li>
+        <li>Running multi-node cases where each node has just a single GPU is known to fail.</li>
+      </ul>
+    </div>
+  </div>
+  <hr class="rn-divider">
+
+  <!-- v0.21.0 -->
+  <div class="rn-entry">
+    <div class="rn-version-header" onclick="rnToggle(this)">
+      <span class="rn-version-tag">v0.21.0</span>
+      <span class="rn-date">2025/08/01</span>
+      <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v0.21.0" target="_blank" rel="noopener noreferrer" class="rn-gh-link" onclick="event.stopPropagation()">↗ GitHub</a><span class="rn-toggle">▲</span>
+    </div>
+    <div class="rn-body">
+      <p class="rn-section-label">Key Features &amp; Enhancements</p>
+      <ul class="rn-list">
+        <li>Added DeepSeek R1 FP8 support on Blackwell.</li>
+        <li>Validated Llama 3.1 models on H200 NVL.</li>
+        <li>Added all_reduce.py benchmark script for testing.</li>
+      </ul>
+    </div>
+  </div>
+  <hr class="rn-divider">
+
+  <!-- v0.20.0 -->
+  <div class="rn-entry">
+    <div class="rn-version-header" onclick="rnToggle(this)">
+      <span class="rn-version-tag">v0.20.0</span>
+      <span class="rn-date">2025/06/18</span>
+      <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v0.20.0" target="_blank" rel="noopener noreferrer" class="rn-gh-link" onclick="event.stopPropagation()">↗ GitHub</a><span class="rn-toggle">▲</span>
+    </div>
+    <div class="rn-body">
+      <p class="rn-section-label">Key Features &amp; Enhancements</p>
+      <ul class="rn-list">
+        <li>Added Qwen3 support.</li>
+        <li>Supported DeepSeek-R1 W4A8 on Hopper.</li>
+        <li>Added RTX Pro 6000 support on single GPU.</li>
+      </ul>
+      <p class="rn-section-label rn-infra">Infrastructure Changes</p>
+      <ul class="rn-list">
+        <li>TRT-LLM team formally releases Docker image on NGC.</li>
+      </ul>
+      <p class="rn-section-label rn-known-issues">Known Issues</p>
+      <ul class="rn-list rn-known-issues">
+        <li>Multi-GPU model support on RTX Pro 6000.</li>
+      </ul>
+    </div>
+  </div>
+  <hr class="rn-divider">
+
+  <!-- v0.19.0 -->
+  <div class="rn-entry">
+    <div class="rn-version-header" onclick="rnToggle(this)">
+      <span class="rn-version-tag">v0.19.0</span>
+      <span class="rn-date">2025/03/09</span>
+      <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v0.19.0" target="_blank" rel="noopener noreferrer" class="rn-gh-link" onclick="event.stopPropagation()">↗ GitHub</a><span class="rn-toggle">▲</span>
+    </div>
+    <div class="rn-body">
+      <p class="rn-section-label">Key Features &amp; Enhancements</p>
+      <ul class="rn-list">
+        <li>The C++ runtime is now open sourced.</li>
+      </ul>
+    </div>
+  </div>
+  <hr class="rn-divider">
+
+  <!-- v0.17.0 -->
+  <div class="rn-entry">
+    <div class="rn-version-header" onclick="rnToggle(this)">
+      <span class="rn-version-tag">v0.17.0</span>
+      <span class="rn-date">2025/02/11</span>
+      <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v0.17.0" target="_blank" rel="noopener noreferrer" class="rn-gh-link" onclick="event.stopPropagation()">↗ GitHub</a><span class="rn-toggle">▲</span>
+    </div>
+    <div class="rn-body">
+      <p class="rn-section-label">Key Features &amp; Enhancements</p>
+      <ul class="rn-list">
+        <li>Added support for B200 (GB200 NVL is not fully supported).</li>
+        <li>Added benchmark script to measure performance benefits of KV cache host offload with expected runtime improvements from GH200.</li>
+        <li>PyTorch workflow experimental support on H100/H200/B200.</li>
+      </ul>
+    </div>
+  </div>
+  <hr class="rn-divider">
+
+  <!-- v0.16.0 -->
+  <div class="rn-entry">
+    <div class="rn-version-header" onclick="rnToggle(this)">
+      <span class="rn-version-tag">v0.16.0</span>
+      <span class="rn-date">2024/12/24</span>
+      <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v0.16.0" target="_blank" rel="noopener noreferrer" class="rn-gh-link" onclick="event.stopPropagation()">↗ GitHub</a><span class="rn-toggle">▲</span>
+    </div>
+    <div class="rn-body">
+      <p class="rn-section-label">Key Features &amp; Enhancements</p>
+      <ul class="rn-list">
+        <li><span class="rn-chip-breaking">Breaking</span> Removed NVIDIA V100 GPU support.</li>
+      </ul>
+      <p class="rn-section-label rn-known-issues">Known Issues</p>
+      <ul class="rn-list rn-known-issues">
+        <li>Known AllReduce performance issue on AMD-based CPU platforms on NCCL 2.23.4 — workaround: <code style="font-size:12px;color:#a3e635;background:#2a2a2a;border:1px solid #444;padding:2px 6px;border-radius:3px;">export NCCL_P2P_LEVEL=SYS</code>.</li>
+      </ul>
+    </div>
+  </div>
+  <hr class="rn-divider">
+
+  <!-- v0.15.0 -->
+  <div class="rn-entry">
+    <div class="rn-version-header" onclick="rnToggle(this)">
+      <span class="rn-version-tag">v0.15.0</span>
+      <span class="rn-date">2024/12/04</span>
+      <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v0.15.0" target="_blank" rel="noopener noreferrer" class="rn-gh-link" onclick="event.stopPropagation()">↗ GitHub</a><span class="rn-toggle">▲</span>
+    </div>
+    <div class="rn-body">
+      <p class="rn-section-label">Key Features &amp; Enhancements</p>
+      <ul class="rn-list">
+        <li>Added functional support for GH200 systems.</li>
+        <li><span class="rn-chip-breaking">Breaking</span> NVIDIA Volta GPU support has been removed in this and all future releases.</li>
+      </ul>
+    </div>
+  </div>
+  <hr class="rn-divider">
+
+  <!-- v0.14.0 -->
+  <div class="rn-entry">
+    <div class="rn-version-header" onclick="rnToggle(this)">
+      <span class="rn-version-tag">v0.14.0</span>
+      <span class="rn-date">2024/11/01</span>
+      <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v0.14.0" target="_blank" rel="noopener noreferrer" class="rn-gh-link" onclick="event.stopPropagation()">↗ GitHub</a><span class="rn-toggle">▲</span>
+    </div>
+    <div class="rn-body">
+      <p class="rn-section-label">Key Features &amp; Enhancements</p>
+      <ul class="rn-list">
+        <li>NVIDIA Volta GPU support is deprecated and will be removed in a future release.</li>
+      </ul>
+    </div>
+  </div>
+  <hr class="rn-divider">
+
+  <!-- v0.13.0 -->
+  <div class="rn-entry">
+    <div class="rn-version-header" onclick="rnToggle(this)">
+      <span class="rn-version-tag">v0.13.0</span>
+      <span class="rn-date">2024/09/30</span>
+      <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v0.13.0" target="_blank" rel="noopener noreferrer" class="rn-gh-link" onclick="event.stopPropagation()">↗ GitHub</a><span class="rn-toggle">▲</span>
+    </div>
+    <div class="rn-body">
+      <p class="rn-section-label rn-infra">Infrastructure Changes</p>
+      <ul class="rn-list">
+        <li>TensorRT updated to <strong style="color:#e0e0e0">10.4.0</strong>.</li>
+        <li>CUDA updated to <strong style="color:#e0e0e0">12.5.1</strong>.</li>
+        <li>PyTorch updated to <strong style="color:#e0e0e0">2.4.0</strong>.</li>
+        <li>ModelOpt updated to <strong style="color:#e0e0e0">v0.15</strong>.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  function rnToggle(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.rn-toggle');
+    const collapsed = body.classList.toggle('collapsed');
+    arrow.textContent = collapsed ? '▼' : '▲';
+  }
+</script>

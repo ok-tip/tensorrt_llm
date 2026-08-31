@@ -1,0 +1,69 @@
+<div class="md-body">
+
+  <!-- Section 1: Offline vs Online -->
+  <h1>1. Offline (Throughput) vs Online (Serving / Latency)</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Offline Benchmarking</th>
+        <th>Online Benchmarking</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b style="color:#e0e0e0;">Goal</b></td>
+        <td>Peak throughput (Tokens/sec)</td>
+        <td>Low latency (TTFT) + Throughput</td>
+      </tr>
+      <tr>
+        <td><b style="color:#e0e0e0;">Typical Load</b></td>
+        <td>Massive, simultaneous batches</td>
+        <td>Dynamic/streaming, concurrent requests</td>
+      </tr>
+      <tr>
+        <td><b style="color:#e0e0e0;">Key Optimizer</b></td>
+        <td>Pre-compiled Engine, High KV Cache</td>
+        <td>In-flight batching, Paged Attention</td>
+      </tr>
+      <tr>
+        <td><b style="color:#e0e0e0;">Network</b></td>
+        <td>Minimal or no network overhead</td>
+        <td>Measures network/API latency</td>
+      </tr>
+      <tr>
+        <td><b style="color:#e0e0e0;">Tools</b></td>
+        <td><code>trtllm-bench</code></td>
+        <td>Server: <code>trtllm-serve</code> &nbsp;| Client: <code>AIPerf</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ul>
+    <li><b style="color:#ddd;">Offline</b> — focuses on measuring maximum throughput (tokens per second) by processing large batches of requests simultaneously, without the constraints of network latency or a request rate limit.</li>
+    <li><b style="color:#ddd;">Online</b> — measures end-to-end performance under realistic, streaming scenarios where requests arrive continuously and require low first-token latency (TTFT) and high user-perceived speed.</li>
+  </ul>
+
+  <hr>
+
+  <!-- Section 2: Workflow Comparison -->
+  <h1>2. Workflow Comparison</h1>
+  <div id="workflow-svg-container"></div>
+
+  <ul>
+    <li><b style="color:#ddd;">TensorRT-LLM v0.14.0</b> is the last version that supports V100 GPUs.
+      <ul>
+        <li>Only weight-only quantization is supported on V100. GPTQ, AWQ, SmoothQuant, and INT8-KV-cache are not supported.</li>
+        <li>Reference: <a href="https://github.com/NVIDIA/TensorRT-LLM/issues/200" target="_blank">TensorRT-LLM issue #200</a>.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <hr>
+
+  <!-- Section 3: llama3.py -->
+  <h1>3. llama3.py</h1>
+  <div id="llama3-content"></div>
+
+</div>

@@ -1,0 +1,71 @@
+<svg viewBox="0 0 680 520" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>TensorRT-LLM benchmark batching cases</title>
+<desc>Three benchmark cases showing prefill and decode blocks per request with annotations</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+<!-- === CASE 1: baseline (128, 128, 30K) === -->
+<text x="108" y="44" text-anchor="end" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">ISL=128</text>
+<rect x="112" y="38" width="8" height="12" rx="2" fill="#e05050"/>
+<rect x="120" y="38" width="8" height="12" rx="2" fill="#a3e635"/>
+<text x="132" y="44" text-anchor="start" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">OSL=128</text>
+<rect x="112" y="54" width="8" height="12" rx="2" fill="#e05050"/>
+<rect x="120" y="54" width="8" height="12" rx="2" fill="#a3e635"/>
+<rect x="112" y="70" width="8" height="12" rx="2" fill="#e05050"/>
+<rect x="120" y="70" width="8" height="12" rx="2" fill="#a3e635"/>
+<rect x="112" y="86" width="8" height="12" rx="2" fill="#e05050"/>
+<rect x="120" y="86" width="8" height="12" rx="2" fill="#a3e635"/>
+<rect x="112" y="102" width="8" height="12" rx="2" fill="#e05050"/>
+<rect x="120" y="102" width="8" height="12" rx="2" fill="#a3e635"/>
+<text x="112" y="124" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">· · ·  30 000 × REQ</text>
+<text x="360" y="44" text-anchor="start" dominant-baseline="central" font-weight="500" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">baseline</text>
+<text x="360" y="61" text-anchor="start" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">Example of Q &amp; A workload</text>
+<text x="360" y="78" text-anchor="start" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">Short pipeline residency per request</text>
+<text x="360" y="95" text-anchor="start" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">Many requests needed to keep GPU pipeline busy</text>
+<line x1="30" y1="150" x2="650" y2="150" stroke="rgba(222,220,209,0.15)" stroke-width="0.5"/>
+<!-- === CASE 2: decode-heavy (128, 2048, 3K) === -->
+<text x="108" y="186" text-anchor="end" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">ISL=128</text>
+<rect x="112" y="180" width="8" height="12" rx="2" fill="#e05050"/>
+<rect x="120" y="180" width="120" height="12" rx="2" fill="#a3e635"/>
+<text x="244" y="186" text-anchor="start" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">OSL=2048</text>
+<rect x="112" y="196" width="8" height="12" rx="2" fill="#e05050"/>
+<rect x="120" y="196" width="120" height="12" rx="2" fill="#a3e635"/>
+<rect x="112" y="212" width="8" height="12" rx="2" fill="#e05050"/>
+<rect x="120" y="212" width="120" height="12" rx="2" fill="#a3e635"/>
+<rect x="112" y="228" width="8" height="12" rx="2" fill="#e05050"/>
+<rect x="120" y="228" width="120" height="12" rx="2" fill="#a3e635"/>
+<rect x="112" y="244" width="8" height="12" rx="2" fill="#e05050"/>
+<rect x="120" y="244" width="120" height="12" rx="2" fill="#a3e635"/>
+<text x="112" y="266" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">· · ·  3 000 × REQ</text>
+<text x="360" y="186" text-anchor="start" dominant-baseline="central" font-weight="500" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">decode-heavy</text>
+<text x="360" y="203" text-anchor="start" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">Example of code generation workload</text>
+<text x="360" y="220" text-anchor="start" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">Long pipeline residency per request</text>
+<text x="360" y="237" text-anchor="start" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">Few requests needed to keep GPU pipeline busy</text>
+<line x1="30" y1="292" x2="650" y2="292" stroke="rgba(222,220,209,0.15)" stroke-width="0.5"/>
+<!-- === CASE 3: prefill-heavy (2048, 128, 3K) === -->
+<text x="108" y="328" text-anchor="end" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">ISL=2048</text>
+<rect x="112" y="322" width="120" height="12" rx="2" fill="#e05050"/>
+<rect x="232" y="322" width="8" height="12" rx="2" fill="#a3e635"/>
+<text x="244" y="328" text-anchor="start" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">OSL=128</text>
+<rect x="112" y="338" width="120" height="12" rx="2" fill="#e05050"/>
+<rect x="232" y="338" width="8" height="12" rx="2" fill="#a3e635"/>
+<rect x="112" y="354" width="120" height="12" rx="2" fill="#e05050"/>
+<rect x="232" y="354" width="8" height="12" rx="2" fill="#a3e635"/>
+<rect x="112" y="370" width="120" height="12" rx="2" fill="#e05050"/>
+<rect x="232" y="370" width="8" height="12" rx="2" fill="#a3e635"/>
+<rect x="112" y="386" width="120" height="12" rx="2" fill="#e05050"/>
+<rect x="232" y="386" width="8" height="12" rx="2" fill="#a3e635"/>
+<text x="112" y="408" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">· · ·  3 000 × REQ</text>
+<text x="360" y="328" text-anchor="start" dominant-baseline="central" font-weight="500" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">prefill-heavy</text>
+<text x="360" y="345" text-anchor="start" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">Example of paper summary workload</text>
+<text x="360" y="362" text-anchor="start" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">Long pipeline residency per request</text>
+<text x="360" y="379" text-anchor="start" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">Few requests needed to keep GPU pipeline busy</text>
+<line x1="30" y1="430" x2="650" y2="430" stroke="rgba(222,220,209,0.15)" stroke-width="0.5"/>
+<!-- === Legend === -->
+<rect x="140" y="450" width="14" height="10" rx="2" fill="#e05050"/>
+<text x="158" y="455" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">Prefill (ISL)</text>
+<rect x="240" y="450" width="14" height="10" rx="2" fill="#a3e635"/>
+<text x="258" y="455" dominant-baseline="central" style="fill:rgb(194,192,182);font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;">Decode (OSL)</text>
+</svg>

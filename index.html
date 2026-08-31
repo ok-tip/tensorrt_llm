@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>KISTI TensorRT-LLM Inference Benchmarks</title>
+
+<style>
+  body { font-family: "Helvetica Neue", Arial, sans-serif; background: #1a1a1a; color: #e0e0e0; margin: 0; padding: 0; }
+  h2 { color: #e0e0e0; margin-bottom: 4px; font-size: 28px; }
+  .subtitle { color: #aaa; font-size: 16px; margin: 0 0 20px; }
+
+  .filters { display: flex; gap: 0; margin-bottom: 16px; flex-wrap: nowrap; align-items: flex-end; width: 100%; }
+  .filter-group { display: flex; flex-direction: column; flex: 1; min-width: 80px; padding-right: 10px; box-sizing: border-box; }
+  .filter-group-buttons { flex: 0 !important; min-width: unset !important; white-space: nowrap; flex-direction: row !important; align-items: center !important; justify-content: flex-end; gap: 6px; padding-top: 16px; }
+  .filter-group-spacer { flex: 0 !important; }
+  .filter-group select { width: 100%; min-width: 0; }
+  .filter-group label { font-size: 11px; color: #888; display: block; margin-bottom: 4px; text-transform: uppercase; }
+  select {
+    background: #2a2a2a; color: #e0e0e0; border: 1px solid #444;
+    padding: 6px 10px; border-radius: 4px; font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px; cursor: pointer; min-width: 120px;
+  }
+  select:focus { outline: 1px solid #a3e635; border-color: #a3e635; }
+
+  button {
+    background: #2a2a2a; color: #888; border: 1px solid #444;
+    padding: 6px 12px; border-radius: 4px; font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 12px; cursor: pointer;
+  }
+  button:hover { color: #e0e0e0; border-color: #666; }
+
+  #count, #ncount {
+    font-size: 13px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .count-box {
+    padding: 6px 14px; border-radius: 4px;
+    font-weight: 600; font-size: 13px; white-space: nowrap;
+    border: 1px solid;
+  }
+  .count-box span { font-weight: 400; margin-left: 4px; }
+  .count-box-1 {
+    background: linear-gradient(135deg, #1e3a0a, #2a5015);
+    border-color: #55a020; color: #a3e635;
+  }
+  .count-box-1 span { color: #78c030; }
+  .count-box-2 {
+    background: linear-gradient(135deg, #162808, #224012);
+    border-color: #3d7a18; color: #88cc35;
+  }
+  .count-box-2 span { color: #5a9828; }
+  .count-box-3 {
+    background: linear-gradient(135deg, #0f1f05, #1a3a08);
+    border-color: #2d6010; color: #6db82a;
+  }
+  .count-box-3 span { color: #4a8020; }
+  .count-box-4 {
+    background: linear-gradient(135deg, #0a1503, #122005);
+    border-color: #1e4a08; color: #509018;
+  }
+  .count-box-4 span { color: #376810; }
+  .count-sep { color: #4a8020; font-size: 32px; font-weight: 200; line-height: 1; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: #222; color: #a3e635; text-align: left;
+    padding: 10px 14px; font-size: 11px; text-transform: uppercase;
+    border-bottom: 2px solid #a3e635; letter-spacing: 0.05em;
+    cursor: pointer; user-select: none; white-space: nowrap;
+    position: sticky; top: 0; z-index: 1;
+  }
+  th:hover { background: #2a2a2a; }
+  th .arrow { margin-left: 4px; color: #555; }
+  th.sorted .arrow { color: #a3e635; }
+  td { padding: 10px 14px; border-bottom: 1px solid #252525; }
+  #ref-table    td { font-size: var(--ref-font,    14px); }
+  #neuron-table td { font-size: var(--neuron-font, 14px); }
+  tr:hover td { background: #212121; }
+  tr.sep-gpu   td { border-top: 3px solid #666; }
+  tr.sep-model td { border-top: 2px solid #444; }
+  tr.sep-tp    td { border-top: 2px solid #383838; }
+
+  .best { color: #a3e635; font-weight: bold; }
+  .tag { font-size: inherit; background: none; padding: 2px 0; border-radius: 0; }
+  .ver { font-size: inherit; color: #999; }
+
+  .bar-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .bar-wrap .marker { display: inline-block; width: 1.2em; text-align: center; flex-shrink: 0; }
+  .bar-wrap .num { width: 7ch; text-align: right; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .bar { height: 6px; background: #a3e635; border-radius: 3px; opacity: 0.6; min-width: 2px; }
+  .empty { color: #555; padding: 24px 14px; font-size: 13px; }
+
+  /* ── Font size slider ── */
+  .zoom-control { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .zoom-control label { font-size: 11px; color: #888; text-transform: uppercase; }
+  .zoom-control input[type=range] {
+    -webkit-appearance: none; width: 140px; height: 6px;
+    background: #555; border-radius: 3px; outline: none; cursor: pointer;
+  }
+  .zoom-control input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px;
+    background: #a3e635; border-radius: 50%; box-shadow: 0 0 4px rgba(163,230,53,0.4);
+  }
+  .zoom-control .zoom-val { font-size: 11px; color: #666; width: 3ch; }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 2px solid #333; }
+  .tab-btn {
+    background: none; color: #999; border: none; border-bottom: 3px solid transparent;
+    padding: 10px 24px; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 18px;
+    cursor: pointer; margin-bottom: -2px; transition: color 0.15s;
+  }
+  .tab-btn:hover { color: #e0e0e0; }
+  .tab-btn.active { color: #a3e635; border-bottom-color: #a3e635; }
+  .tab-btn.neutral-tab.active { color: #888; border-bottom-color: #888; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .method-placeholder { color: #555; font-size: 15px; padding: 48px 0; text-align: center; }
+  .page-wrap { margin: 0 auto; padding: 24px; }
+
+  /* ── Markdown prose styles (Methodology tab) ── */
+  .md-body { font-size: 14px; color: #ccc; line-height: 1.8; }
+  .md-body h1 { color: #e0e0e0; font-size: 22px; margin: 32px 0 8px; border-bottom: 2px solid #444; padding-bottom: 8px; }
+  .md-body h2 { color: #999; font-size: 17px; margin: 28px 0 8px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+  .md-body h3 { color: #e05050; font-size: 14px; margin: 20px 0 6px; }
+  .md-body p  { margin: 0 0 12px; }
+  .md-body ul, .md-body ol { margin: 0 0 12px; padding-left: 22px; }
+  .md-body li { margin-bottom: 4px; }
+  .md-body code { background: #2a2a2a; border: 1px solid #3a3a3a; padding: 2px 6px; border-radius: 3px; color: #a3e635; font-family: "SFMono-Regular", Consolas, monospace; font-size: 13px; }
+  .md-body pre { background: #1e1e1e; border: 1px solid #333; border-radius: 6px; padding: 14px 16px; overflow-x: auto; margin: 0 0 16px; }
+  .md-body pre code { background: none; border: none; padding: 0; color: #ffffff; font-size: 13px; line-height: 1.6; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
+  .md-body table { width: 100%; max-width: 900px; border-collapse: collapse; margin-bottom: 18px; }
+  .md-body table th { background: #222; color: #bbb; text-align: left; padding: 8px 14px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid #555; }
+  .md-body table td { padding: 8px 14px; border-bottom: 1px solid #252525; font-size: 14px; }
+  .md-body table tr:hover td { background: #212121; }
+  .md-body a { color: #e05050; text-decoration: none; }
+  .md-body a:hover { text-decoration: underline; }
+  .md-body hr { border: none; border-top: 2px solid #333; margin: 32px 0; }
+
+  /* ── Collapsible legend ── */
+  .legend-toggle {
+    background: none; border: none; color: #777; font-size: 13px;
+    padding: 0; cursor: pointer; display: inline-flex; align-items: center;
+    gap: 5px; letter-spacing: 0.02em; transition: color 0.15s;
+  }
+  .legend-toggle:hover { color: #bbb; border: none; }
+  .legend-body {
+    font-size: 14px; color: #bbb; line-height: 2;
+    margin-top: 10px;
+    border-left: 2px solid #333;
+    padding-left: 12px;
+  }
+  /* Tab button */
+  .tab-btn.neuron-tab.active { color: #38bdf8; border-bottom-color: #38bdf8; }
+
+  /* Table headers inside neuron tab */
+  #tab-neuron th { color: #38bdf8; border-bottom-color: #38bdf8; }
+  #tab-neuron th.sorted .arrow { color: #38bdf8; }
+
+  /* Filter select focus inside neuron tab */
+  #neuron-filters select:focus { outline-color: #38bdf8; border-color: #38bdf8; }
+
+  /* Zoom slider thumb inside neuron tab */
+  #neuron-zoom-slider::-webkit-slider-thumb { background: #38bdf8; box-shadow: 0 0 4px rgba(56,189,248,0.4); }
+
+  /* Count boxes — blue gradient */
+  .count-box-n1 { background: linear-gradient(135deg, #0a2540, #0f3860); border-color: #1d6fa8; color: #38bdf8; }
+  .count-box-n1 span { color: #60cff8; }
+  .count-box-n2 { background: linear-gradient(135deg, #081c30, #0c2c50); border-color: #15547e; color: #29b0f0; }
+  .count-box-n2 span { color: #4abae8; }
+  .count-box-n3 { background: linear-gradient(135deg, #05121e, #091e38); border-color: #0e3a58; color: #1a9de0; }
+  .count-box-n3 span { color: #35a8d8; }
+  .count-box-n4 { background: linear-gradient(135deg, #030b14, #061528); border-color: #082840; color: #1488c8; }
+  .count-box-n4 span { color: #2a90c0; }
+  .count-sep-n { color: #15547e; font-size: 32px; font-weight: 200; line-height: 1; }
+
+  /* Row selected highlight — blue */
+  #tab-neuron tr.row-selected td { background: #091e38 !important; }
+  #tab-neuron tr.row-selected td:first-child { box-shadow: inset 3px 0 0 #38bdf8; }
+  #tab-neuron tr.row-selected:hover td { background: #0f2d50 !important; }
+
+  /* Row edit/dup hover — blue */
+  #tab-neuron .row-edit-btn:hover { color: #38bdf8 !important; border-color: #38bdf8 !important; }
+  #tab-neuron .row-dup-btn:hover  { color: #38bdf8 !important; border-color: #38bdf8 !important; }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+<h2>KISTI TensorRT-LLM Inference Benchmarks</h2>
+<p class="subtitle">
+  Throughput (tokens/sec) · higher is better
+  <span id="ls-badge" style="display:none; margin-left:12px; font-size:11px; font-weight:600;
+    background:#1a3a08; border:1px solid #3d7a18; color:#88cc35;
+    padding:3px 10px; border-radius:10px; vertical-align:middle; letter-spacing:0.04em;">
+    ● LOCAL EDITS ACTIVE
+  </span>
+  <button id="ls-reset-btn" onclick="resetLocalStorage()" style="display:none; margin-left:6px;
+    font-size:11px; background:none; border:1px solid #555; color:#666;
+    padding:2px 8px; border-radius:4px; cursor:pointer; vertical-align:middle;">
+    Reset to file defaults
+  </button>
+</p>
+
+<div class="tabs">
+  <button class="tab-btn neuron-tab active" onclick="switchTab('neuron',  this)">Neuron (KISTI)</button>
+  <button class="tab-btn"          onclick="switchTab('results', this)">Reference (NVIDIA)</button>
+  <button class="tab-btn neutral-tab" onclick="switchTab('release', this)">Release Notes</button>
+  <button class="tab-btn neutral-tab" onclick="switchTab('method',  this)">Methods</button>
+</div>
+
+<!-- Reference tab -->
+<div id="tab-results" class="tab-panel">
+
+<div style="margin-bottom: 16px;">
+  <button class="legend-toggle" onclick="toggleLegend('ref-legend', this)" aria-expanded="false">▸ Legend</button>
+  <div id="ref-legend" class="legend-body" style="display:none;">
+    Testing was performed on models with quantized weights from NVIDIA's <a href="https://huggingface.co/collections/nvidia/inference-optimized-checkpoints-with-model-optimizer" target="_blank" style="color:#a3e635; text-decoration:none;">Model Optimizer HuggingFace Collection</a>.<br>
+    &bull; <b style="color:#ddd;">PP</b>: Pipeline parallelism (multi-node inference)<br>
+    &bull; <b style="color:#ddd;">TP</b>: Tensor parallelism (multi-GPU inference)<br>
+    &bull; <b style="color:#ddd;">ISL</b>: Benchmark input sequence length<br>
+    &bull; <b style="color:#ddd;">OSL</b>: Benchmark output sequence length<br>
+    &bull; <b style="color:#ddd;">Requests</b>: The number of requests to generate for dataset generation<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&bull; <span style="color:#999;">For shorter (ISL/OSL), a larger number of messages were used to guarantee that the system hit a steady state because requests enter and exit the system at a much faster rate</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&bull; <span style="color:#999;">For longer (ISL/OSL), requests remain in the system longer and therefore require less requests to achieve steady state</span>
+  </div>
+</div>
+
+<div class="zoom-control">
+  <label>Table size</label>
+  <input type="range" id="zoom-slider" min="10" max="20" value="14" step="1"
+         oninput="setRefZoom(this.value)">
+  <span class="zoom-val" id="zoom-val">14px</span>
+</div>
+
+<div class="filters" id="ref-filters">
+  <div class="filter-group">
+    <label>GPU</label>
+    <select id="f-gpu"     onchange="filterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Model</label>
+    <select id="f-model"   onchange="filterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Precision</label>
+    <select id="f-quant"   onchange="filterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>PP Size</label>
+    <select id="f-pp"      onchange="filterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>TP Size</label>
+    <select id="f-tp"      onchange="filterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>ISL</label>
+    <select id="f-isl"     onchange="filterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>OSL</label>
+    <select id="f-osl"     onchange="filterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Requests</label>
+    <select id="f-numreq"  onchange="filterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group filter-group-buttons">
+    <label>&nbsp;</label>
+    <button onclick="resetFilters()">Reset</button>
+    <button onclick="openEditModal('ref')">Add</button>
+    <button id="dl-ref" onclick="downloadDataJs()">Save <span id="dl-ref-count"></span></button>
+    <button onclick="exportCSV()">Export CSV</button>
+  </div>
+  <div class="filter-group filter-group-spacer"></div>
+</div>
+
+<div id="count"></div>
+
+
+
+<table id="ref-table">
+  <thead>
+    <tr>
+      <th data-sort-key="gpu" onclick="sort('gpu')">GPU <span class="arrow">↕</span></th>
+      <th data-sort-key="model" onclick="sort('model')">Model <span class="arrow">↕</span></th>
+      <th data-sort-key="precision" onclick="sort('precision')">Precision <span class="arrow">↕</span></th>
+      <th data-sort-key="pp" onclick="sort('pp')">PP <span class="arrow">↕</span></th>
+      <th data-sort-key="tp" onclick="sort('tp')">TP <span class="arrow">↕</span></th>
+      <th data-sort-key="isl" onclick="sort('isl')">ISL <span class="arrow">↕</span></th>
+      <th data-sort-key="osl" onclick="sort('osl')">OSL <span class="arrow">↕</span></th>
+      <th data-sort-key="num_requests" onclick="sort('num_requests')">Requests <span class="arrow">↕</span></th>
+      <th data-sort-key="throughput" onclick="sort('throughput')">Throughput (tok/s) <span class="arrow">↕</span></th>
+      <th data-sort-key="version" onclick="sort('version')">Version <span class="arrow">↕</span></th>
+      <th style="width:36px; cursor:default;"></th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+
+</div><!-- end tab-results -->
+
+<!-- Neuron (KISTI) tab -->
+<div id="tab-neuron" class="tab-panel active">
+
+<div style="margin-bottom: 16px;">
+  <button class="legend-toggle" onclick="toggleLegend('neuron-legend', this)" aria-expanded="false">▸ Legend</button>
+  <div id="neuron-legend" class="legend-body" style="display:none;">
+    Benchmarks run on Neuron cluster at KISTI using TensorRT-LLM.<br>
+    &bull; <b style="color:#ddd;">PP</b>: Pipeline parallelism (multi-node inference)<br>
+    &bull; <b style="color:#ddd;">TP</b>: Tensor parallelism (multi-GPU inference)<br>
+    &bull; <b style="color:#ddd;">ISL</b>: Benchmark input sequence length<br>
+    &bull; <b style="color:#ddd;">OSL</b>: Benchmark output sequence length<br>
+    &bull; <b style="color:#ddd;">Requests</b>: The number of requests to generate for dataset generation<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&bull; <span style="color:#999;">For shorter (ISL/OSL), a larger number of messages were used to guarantee that the system hit a steady state because requests enter and exit the system at a much faster rate</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&bull; <span style="color:#999;">For longer (ISL/OSL), requests remain in the system longer and therefore require less requests to achieve steady state</span>
+  </div>
+</div>
+
+<div class="zoom-control">
+  <label>Table size</label>
+  <input type="range" id="neuron-zoom-slider" min="10" max="20" value="14" step="1"
+         oninput="setNeuronZoom(this.value)">
+  <span class="zoom-val" id="neuron-zoom-val">14px</span>
+</div>
+
+<div class="filters" id="neuron-filters">
+  <div class="filter-group">
+    <label>GPU</label>
+    <select id="nf-gpu"     onchange="neuronFilterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Model</label>
+    <select id="nf-model"   onchange="neuronFilterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Precision</label>
+    <select id="nf-quant"   onchange="neuronFilterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>PP Size</label>
+    <select id="nf-pp"      onchange="neuronFilterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>TP Size</label>
+    <select id="nf-tp"      onchange="neuronFilterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>ISL</label>
+    <select id="nf-isl"     onchange="neuronFilterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>OSL</label>
+    <select id="nf-osl"     onchange="neuronFilterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Requests</label>
+    <select id="nf-numreq"  onchange="neuronFilterChanged(this)"><option value="all">All</option></select>
+  </div>
+  <div class="filter-group filter-group-buttons">
+    <label>&nbsp;</label>
+    <button onclick="resetNeuronFilters()">Reset</button>
+    <button onclick="openEditModal('neuron')">Add</button>
+    <button id="dl-neuron" onclick="downloadDataJs()">Save <span id="dl-neuron-count"></span></button>
+    <button onclick="exportNeuronCSV()">Export CSV</button>
+  </div>
+  <div class="filter-group filter-group-spacer"></div>
+</div>
+
+<div id="ncount"></div>
+
+<table id="neuron-table">
+  <thead>
+    <tr>
+      <th data-sort-key="gpu" onclick="neuronSort('gpu')">GPU <span class="arrow">↕</span></th>
+      <th data-sort-key="model" onclick="neuronSort('model')">Model <span class="arrow">↕</span></th>
+      <th data-sort-key="precision" onclick="neuronSort('precision')">Precision <span class="arrow">↕</span></th>
+      <th data-sort-key="pp" onclick="neuronSort('pp')">PP <span class="arrow">↕</span></th>
+      <th data-sort-key="tp" onclick="neuronSort('tp')">TP <span class="arrow">↕</span></th>
+      <th data-sort-key="isl" onclick="neuronSort('isl')">ISL <span class="arrow">↕</span></th>
+      <th data-sort-key="osl" onclick="neuronSort('osl')">OSL <span class="arrow">↕</span></th>
+      <th data-sort-key="num_requests" onclick="neuronSort('num_requests')">Requests <span class="arrow">↕</span></th>
+      <th data-sort-key="throughput" onclick="neuronSort('throughput')">Throughput (tok/s) <span class="arrow">↕</span></th>
+      <th data-sort-key="version" onclick="neuronSort('version')">Version <span class="arrow">↕</span></th>
+      <th style="width:36px; cursor:default;"></th>
+    </tr>
+  </thead>
+  <tbody id="ntbody"></tbody>
+</table>
+
+</div><!-- end tab-neuron -->
+
+<!-- Release Notes tab -->
+<div id="tab-release" class="tab-panel"></div>
+
+<!-- Methodology tab -->
+<div id="tab-method" class="tab-panel"></div>
+
+<!-- Pre-declare comparison state so render() and renderNeuron() can reference it on first call -->
+
+
+
+</div><!-- end page-wrap -->
+
+<!-- ── Edit Modal ── -->
+<div id="edit-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; align-items:center; justify-content:center;">
+  <div style="background:#1e1e1e; border:1px solid #444; border-radius:8px; width:780px; max-width:95vw; max-height:90vh; overflow-y:auto; font-family:'Helvetica Neue',Arial,sans-serif;">
+
+    <div style="padding:16px 20px; border-bottom:1px solid #333; display:flex; align-items:flex-start; justify-content:space-between;">
+      <div>
+        <div id="modal-title" style="font-size:15px; font-weight:600; color:#e0e0e0;"></div>
+        <div id="modal-subtitle" style="font-size:12px; color:#666; margin-top:3px;">Fill in all fields to add a new row. Text fields suggest existing values.</div>
+      </div>
+      <button onclick="closeEditModal()" style="background:none; border:none; color:#666; font-size:20px; cursor:pointer; line-height:1; padding:0 0 0 16px;">&times;</button>
+    </div>
+
+    <div style="padding:16px 20px;">
+
+      <!-- ── Add row form ── -->
+      <div id="cascade-section">
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+        <div>
+          <label class="el">GPU</label>
+          <input id="e-gpu" class="ef" type="text" list="dl-gpu" placeholder="e.g. H100 SXM 80GB" autocomplete="off" />
+          <datalist id="dl-gpu"></datalist>
+        </div>
+        <div>
+          <label class="el">Model</label>
+          <input id="e-model" class="ef" type="text" list="dl-model" placeholder="Model name" autocomplete="off" />
+          <datalist id="dl-model"></datalist>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+        <div>
+          <label class="el">Precision</label>
+          <input id="e-prec" class="ef" type="text" list="dl-prec" placeholder="e.g. FP8" autocomplete="off" />
+          <datalist id="dl-prec"></datalist>
+        </div>
+        <div>
+          <label class="el">PP size</label>
+          <input id="e-pp" class="ef" type="number" min="1" placeholder="1" list="dl-pp" autocomplete="off" />
+          <datalist id="dl-pp"></datalist>
+        </div>
+        <div>
+          <label class="el">TP size</label>
+          <input id="e-tp" class="ef" type="number" min="1" placeholder="1" list="dl-tp" autocomplete="off" />
+          <datalist id="dl-tp"></datalist>
+        </div>
+        <div>
+          <label class="el">Version</label>
+          <input id="e-ver" class="ef" type="text" list="dl-ver" placeholder="e.g. v0.15.0" autocomplete="off" />
+          <datalist id="dl-ver"></datalist>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px;">
+        <div>
+          <label class="el">ISL</label>
+          <input id="e-isl" class="ef" type="number" min="1" placeholder="128" list="dl-isl" autocomplete="off" />
+          <datalist id="dl-isl"></datalist>
+        </div>
+        <div>
+          <label class="el">OSL</label>
+          <input id="e-osl" class="ef" type="number" min="1" placeholder="128" list="dl-osl" autocomplete="off" />
+          <datalist id="dl-osl"></datalist>
+        </div>
+        <div>
+          <label class="el">Requests</label>
+          <input id="e-req" class="ef" type="number" min="1" placeholder="900" list="dl-req" autocomplete="off" />
+          <datalist id="dl-req"></datalist>
+        </div>
+        <div>
+          <label class="el">Throughput (tok/s)</label>
+          <input id="e-tput" class="ef" type="number" min="0" step="any" placeholder="e.g. 14823" />
+        </div>
+      </div>
+
+      </div><!-- end #cascade-section -->
+
+      <!-- ── Direct edit mode ── -->
+      <div id="direct-edit-section" style="display:none;">
+
+        <div id="direct-edit-banner" style="background:#1a2e0a; border:1px solid #3d7a18; border-radius:5px;
+          padding:8px 14px; margin-bottom:14px; font-size:12px; color:#88cc35;">
+          ✎ &nbsp;Direct row edit — all fields are editable. Apply replaces the original row.
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div><label class="el">GPU</label><input id="de-gpu" class="ef" type="text" /></div>
+          <div><label class="el">Model</label><input id="de-model" class="ef" type="text" /></div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div><label class="el">Precision</label><input id="de-prec" class="ef" type="text" /></div>
+          <div><label class="el">PP size</label><input id="de-pp" class="ef" type="number" /></div>
+          <div><label class="el">TP size</label><input id="de-tp" class="ef" type="number" /></div>
+          <div><label class="el">Version</label><input id="de-ver" class="ef" type="text" /></div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div><label class="el">ISL</label><input id="de-isl" class="ef" type="number" /></div>
+          <div><label class="el">OSL</label><input id="de-osl" class="ef" type="number" /></div>
+          <div><label class="el">Requests</label><input id="de-req" class="ef" type="number" /></div>
+          <div><label class="el">Throughput (tok/s)</label><input id="de-tput" class="ef" type="number" /></div>
+        </div>
+
+      </div><!-- end #direct-edit-section -->
+
+      <div id="modal-error" style="display:none; color:#f87171; font-size:12px; margin-top:12px;"></div>
+    </div>
+
+    <div style="padding:14px 20px; border-top:1px solid #333; display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; gap:8px;">
+        <button onclick="closeEditModal()" style="background:#2a2a2a; color:#888; border:1px solid #444; padding:7px 16px; border-radius:4px; cursor:pointer; font-size:13px;">Close</button>
+        <button onclick="resetModal()" style="background:#2a2a2a; color:#888; border:1px solid #555; padding:7px 16px; border-radius:4px; cursor:pointer; font-size:13px;">Reset</button>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span id="modal-pending" style="font-size:11px; color:#666; display:none;"></span>
+        <button id="apply-btn" onclick="applyEdit()" style="background:#a3e635; border:none; color:#1a1a1a; font-weight:600; padding:7px 16px; border-radius:4px; cursor:pointer; font-size:13px;">Apply</button>
+        <button id="modal-save-btn" onclick="downloadDataJs()" style="background:#2a2a2a; border:1px solid #f5c400; color:#f5c400; font-weight:600; padding:7px 16px; border-radius:4px; cursor:pointer; font-size:13px; display:none;">Save</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .el { display:block; font-size:11px; color:#888; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px; }
+  .ef { width:100%; background:#2a2a2a; color:#e0e0e0; border:1px solid #444; padding:6px 8px; border-radius:4px; font-size:13px; font-family:'Helvetica Neue',Arial,sans-serif; box-sizing:border-box; }
+  .ef:focus { outline:1px solid var(--modal-accent,#a3e635); border-color:var(--modal-accent,#a3e635); }
+  .direct { display:none; margin-top:4px; }
+  .direct.show { display:block; }
+
+  /* ── Row comparison ── */
+  tbody tr { cursor: pointer; }
+  tr.row-selected td { background: #1b2d0c !important; }
+  tr.row-selected td:first-child { box-shadow: inset 3px 0 0 #a3e635; }
+  tr.row-selected:hover td { background: #223810 !important; }
+
+  /* ── Per-row edit button ── */
+  .edit-col { width: 90px; padding: 4px 6px !important; text-align: center; white-space: nowrap; }
+  .row-edit-btn {
+    opacity: 0; background: none; border: 1px solid #444; color: #666;
+    padding: 2px 5px; border-radius: 3px; cursor: pointer;
+    font-size: 13px; line-height: 1.2; transition: opacity 0.12s, color 0.12s, border-color 0.12s;
+  }
+  tr:hover .row-edit-btn { opacity: 1; }
+  .row-edit-btn:hover { color: #a3e635 !important; border-color: #a3e635 !important; }
+  .row-del-btn {
+    opacity: 0; background: none; border: 1px solid #444; color: #666;
+    padding: 2px 5px; border-radius: 3px; cursor: pointer; margin-left: 4px;
+    font-size: 13px; line-height: 1.2; transition: opacity 0.12s, color 0.12s, border-color 0.12s;
+  }
+  tr:hover .row-del-btn { opacity: 1; }
+  .row-del-btn:hover { color: #f87171 !important; border-color: #f87171 !important; }
+  .row-dup-btn {
+    opacity: 0; background: none; border: 1px solid #444; color: #666;
+    padding: 2px 5px; border-radius: 3px; cursor: pointer; margin-left: 4px;
+    font-size: 13px; line-height: 1.2; transition: opacity 0.12s, color 0.12s, border-color 0.12s;
+  }
+  tr:hover .row-dup-btn { opacity: 1; }
+  .row-dup-btn:hover { color: #a3e635 !important; border-color: #a3e635 !important; }
+
+  /* ── Compare panel ── */
+  #compare-panel {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #111; border-top: 2px solid #555;
+    z-index: 50; padding: 10px 24px 14px;
+    box-shadow: 0 -6px 28px rgba(0,0,0,0.6);
+  }
+</style>
+
+
+<!-- ── Compare panel ── -->
+<div id="compare-panel" style="display:none;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+    <div style="display:flex; align-items:center; gap:16px;">
+      <span style="font-size:11px; color:#888; font-weight:700; text-transform:uppercase; letter-spacing:0.07em;">
+        ▤ Throughput Comparison &nbsp;·&nbsp; <span id="cmp-count"></span>
+      </span>
+      <span id="cmp-legend" style="display:none; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; gap:12px; align-items:center;"></span>
+    </div>
+    <button onclick="clearCompare()" style="background:none; border:1px solid #666; color:#bbb;
+      padding:3px 12px; border-radius:4px; cursor:pointer; font-size:12px;">✕ Clear All</button>
+  </div>
+  <!-- Waiting state: shown when exactly 1 row is selected across both tabs -->
+  <div id="cmp-waiting" style="display:none; padding:10px 0 6px;">
+    <div id="cmp-waiting-row" style="font-size:13px; color:#888; margin-bottom:10px;"></div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="height:6px; flex:1; background:#2a2a2a; border-radius:3px; overflow:hidden;">
+        <div id="cmp-waiting-bar" style="height:100%; width:60%; border-radius:3px; opacity:0.35;"></div>
+      </div>
+      <span style="font-size:12px; color:#555; white-space:nowrap;">← Select one more row to compare</span>
+    </div>
+  </div>
+  <svg id="cmp-svg" style="width:100%; display:block;"></svg>
+</div>
+
+
+<!-- JS loaded before bootstrap so all functions exist when fetch resolves -->
+<script src="compare.js"></script>
+<script src="filters.js"></script>
+<script src="editor.js"></script>
+
+<script>
+  // ── Global data arrays, populated by fetch bootstrap ────────────────────
+  var DATA = [], NEURON_DATA = [];
+
+  // ── Bootstrap: fetch both JSON files in parallel, then kick off the app ─
+  Promise.all([
+    fetch('nvidia.json').then(r => { if (!r.ok) throw new Error('nvidia.json not found'); return r.json(); }),
+    fetch('kisti.json').then(r => { if (!r.ok) throw new Error('kisti.json not found');  return r.json(); }),
+    fetch('release_notes.html').then(r => r.ok ? r.text() : '').catch(() => ''),
+    fetch('methods.html').then(r => r.ok ? r.text() : '').catch(() => ''),
+    fetch('llama3.html').then(r => r.ok ? r.text() : '').catch(() => ''),
+    fetch('workflow.svg').then(r => r.ok ? r.text() : '').catch(() => ''),
+    fetch('params.svg').then(r => r.ok ? r.text() : '').catch(() => ''),
+  ]).then(([nvidia, kisti, rnHtml, methodsHtml, llama3Html, workflowSvg, paramsSvg]) => {
+    nvidia.forEach(r => DATA.push(r));
+    kisti .forEach(r => NEURON_DATA.push(r));
+
+    // Inject release notes
+    const rnEl = document.getElementById('tab-release');
+    if (rnEl && rnHtml) rnEl.innerHTML = rnHtml;
+
+    // Inject methods tab (contains workflow-svg-container and llama3-content placeholders)
+    const mtEl = document.getElementById('tab-method');
+    if (mtEl && methodsHtml) mtEl.innerHTML = methodsHtml;
+
+    // Inject workflow SVG into its placeholder (now inside methods)
+    const wfEl = document.getElementById('workflow-svg-container');
+    if (wfEl && workflowSvg) {
+      wfEl.innerHTML = workflowSvg;
+      const wfSvg = wfEl.querySelector('svg');
+      if (wfSvg) { wfSvg.style.width = '75%'; wfSvg.style.height = 'auto'; wfSvg.style.display = 'block'; wfSvg.style.maxWidth = '740px'; }
+    }
+
+    // Inject llama3 content + params SVG into its placeholder (now inside methods)
+    const llEl = document.getElementById('llama3-content');
+    if (llEl && llama3Html) {
+      llEl.innerHTML = llama3Html;
+      const h2s = llEl.querySelectorAll('h2');
+      let usageH2 = null;
+      h2s.forEach(h => { if (h.textContent.trim() === 'Usage') usageH2 = h; });
+      if (usageH2 && paramsSvg) {
+        const sec = document.createElement('div');
+        sec.innerHTML = '<h2>Parameters</h2><div>' + paramsSvg + '</div>';
+        const pSvg = sec.querySelector('svg');
+        if (pSvg) { pSvg.style.width = '75%'; pSvg.style.height = 'auto'; pSvg.style.display = 'block'; pSvg.style.maxWidth = '680px'; }
+        usageH2.parentNode.insertBefore(sec, usageH2);
+      }
+    }
+
+    if (typeof startApp === 'function') startApp();
+  }).catch(err => {
+    document.body.insertAdjacentHTML('afterbegin',
+      `<div style="background:#3a0a0a;color:#f87171;padding:16px 24px;font-family:monospace;font-size:13px;border-bottom:2px solid #7f1d1d;">
+        ⚠ ${err.message} — make sure you are serving this folder via a local HTTP server (e.g. <code>miniserve .</code>).
+      </div>`);
+  });
+</script>
+
+</body>
+</html>

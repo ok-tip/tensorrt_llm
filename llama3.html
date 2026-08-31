@@ -1,0 +1,173 @@
+<h2>Dependencies</h2>
+<pre><code>pip install pyyaml tabulate rich
+</code></pre>
+<h2>Workflows</h2>
+<table>
+<thead>
+<tr>
+<th>Workflow</th>
+<th>Description</th>
+<th>Supported Steps</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>legacy</code></td>
+<td>Compiled TRT-LLM engine</td>
+<td>download, convert, build, data, throughput, summary, clean</td>
+</tr>
+<tr>
+<td><code>pytorch</code></td>
+<td>HF-based inference</td>
+<td>download, data, throughput, summary, clean</td>
+</tr>
+</tbody>
+</table>
+<h2>Steps</h2>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Description</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>download</code></td>
+<td>Fetch HF checkpoint</td>
+<td><code>hf-models/&lt;model&gt;/</code></td>
+</tr>
+<tr>
+<td><code>convert</code></td>
+<td>Convert HF → TRT-LLM checkpoint (legacy only)</td>
+<td><code>ckpts/&lt;model&gt;/&lt;quant&gt;/pp&lt;P&gt;-tp&lt;T&gt;/</code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td>Compile TRT-LLM engine (legacy only)</td>
+<td><code>engines/&lt;model&gt;/&lt;quant&gt;/pp&lt;P&gt;-tp&lt;T&gt;-sl&lt;S&gt;-tk&lt;T&gt;-bs&lt;B&gt;/</code></td>
+</tr>
+<tr>
+<td><code>data</code></td>
+<td>Generate synthetic datasets</td>
+<td><code>datasets/synthetic-il&lt;N&gt;-ol&lt;N&gt;-rq&lt;N&gt;.txt</code></td>
+</tr>
+<tr>
+<td><code>throughput</code></td>
+<td>Run <code>trtllm-bench</code>, sweep over all cases</td>
+<td><code>throughput/&lt;model&gt;/&lt;quant&gt;/pp&lt;P&gt;-tp&lt;T&gt;/output-...-&lt;ts&gt;.log</code></td>
+</tr>
+<tr>
+<td><code>summary</code></td>
+<td>Print throughput table; scan all historical logs</td>
+<td><code>logs/summary-&lt;config&gt;-&lt;workflow&gt;-&lt;model&gt;-&lt;ts&gt;.log</code></td>
+</tr>
+<tr>
+<td><code>clean</code></td>
+<td>Delete artifacts scoped to exact config combinations</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2>Config</h2>
+<pre><code class="language-yaml">workflow: pytorch                         
+sif: tensorrt_llm_v1.2.0.sif
+model: nvidia/Llama-3.1-70B-Instruct-FP8
+
+# parallelism
+pp_sizes: [1]
+tp_sizes: [1, 2, 4, 8]
+
+# engine parameters
+max_seq_len: 4096
+max_num_tokens: [8192]
+max_batch_sizes: [2048]
+
+# throughput
+workloads:
+  - {input_mean: 128,  output_mean: 128,  num_requests: 30000}
+  - {input_mean: 128,  output_mean: 2048, num_requests: 3000}
+  - {input_mean: 2048, output_mean: 128,  num_requests: 3000}
+
+kv_cache_fraction: 0.95
+</code></pre>
+<h2>Usage</h2>
+<pre><code class="language-bash">./llama3.py --config config.yaml &lt;steps&gt;
+</code></pre>
+<p>Steps are comma-separated with no spaces:</p>
+<pre><code class="language-bash"># pytorch — full run
+./llama3.py --config config.yaml download,data,throughput,summary
+
+# legacy — full run
+./llama3.py --config config.yaml download,convert,build,data,throughput,summary
+
+# summary only (scans all historical logs)
+./llama3.py --config config.yaml summary
+
+# clean artifacts for this config
+./llama3.py --config config.yaml clean
+</code></pre>
+<h2>Field Codes</h2>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>il</code></td>
+<td>input_mean</td>
+</tr>
+<tr>
+<td><code>ol</code></td>
+<td>output_mean</td>
+</tr>
+<tr>
+<td><code>rq</code></td>
+<td>num_requests</td>
+</tr>
+<tr>
+<td><code>pp</code></td>
+<td>pipeline_parallel</td>
+</tr>
+<tr>
+<td><code>tp</code></td>
+<td>tensor_parallel</td>
+</tr>
+<tr>
+<td><code>sl</code></td>
+<td>max_seq_len</td>
+</tr>
+<tr>
+<td><code>tk</code></td>
+<td>max_num_tokens</td>
+</tr>
+<tr>
+<td><code>bs</code></td>
+<td>max_batch_size</td>
+</tr>
+<tr>
+<td><code>ts</code></td>
+<td>run timestamp</td>
+</tr>
+</tbody>
+</table>
+<h2>Result: H200 SXM 141 GB</h2>
+<pre><code>  pipeline    tensor    input len    output len    requests    max tokens    batch size    run timestamp    Throughput (tok/s)
+----------  --------  -----------  ------------  ----------  ------------  ------------  ---------------  --------------------
+         1         1          128           128       30000          8192          2048  20260415-114432                  3644
+         1         1          128          2048        3000          8192          2048  20260415-114432                  4086
+         1         1         2048           128        3000          8192          2048  20260415-114432                   461
+         1         2          128           128       30000          8192          2048  20260415-114432                  6667
+         1         2          128          2048        3000          8192          2048  20260415-114432                  6274
+         1         2         2048           128        3000          8192          2048  20260415-114432                   789
+         1         4          128           128       30000          8192          2048  20260415-114432                 10698
+         1         4          128          2048        3000          8192          2048  20260415-114432                 11674
+         1         4         2048           128        3000          8192          2048  20260415-114432                  1283
+         1         8          128           128       30000          8192          2048  20260415-114432                 15487
+         1         8          128          2048        3000          8192          2048  20260415-114432                 24066
+         1         8         2048           128        3000          8192          2048  20260415-114432                  1884
+</code></pre>
